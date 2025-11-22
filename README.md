@@ -41,11 +41,8 @@ This is a lightweight implementation of httpbin.org's core functionality, provid
 This project uses `uv` for dependency management. Make sure you have Python 3.12+ installed.
 
 ```bash
-# Install dependencies
-uv sync
-
-# Or manually install
-uv add fastapi uvicorn python-multipart
+# Install dependencies (production mode, no editable install)
+uv sync --no-editable --frozen
 ```
 
 ## Usage
@@ -53,17 +50,17 @@ uv add fastapi uvicorn python-multipart
 ### Run the server
 
 ```bash
-# Using uv
+# Recommended: Using the CLI entry point
+uv run httpbin
+
+# Or run as Python module (with auto-reload)
 uv run python -m httpbin.main
 
-# Or directly with Python
-python src/httpbin/main.py
-
-# Or with uvicorn
-uvicorn httpbin.main:app --reload
+# Or directly with uvicorn
+uv run uvicorn httpbin.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-The server will start on `http://localhost:8000`
+The server will start on `http://0.0.0.0:8000` (accessible via `http://localhost:8000`)
 
 ### Access API Documentation
 
@@ -128,11 +125,10 @@ Edit `src/httpbin/config.py` to customize:
 ### Setup Development Environment
 
 ```bash
-# Install development dependencies
-pip install -e .[dev]
+# Install all dependencies including dev extras
+uv sync --extra dev
 
-# Or with uv
-uv sync --dev
+# This will install: pytest, pytest-asyncio, httpx, ruff
 ```
 
 ### Code Quality
@@ -143,34 +139,82 @@ This project uses [ruff](https://docs.astral.sh/ruff/) for linting and code form
 
 ```bash
 # Check code for issues
-ruff check src tests
+uv run ruff check src tests
 
 # Auto-fix issues
-ruff check --fix src tests
+uv run ruff check --fix src tests
 ```
 
 #### Format Code
 
 ```bash
 # Check code formatting
-ruff format --check src tests
+uv run ruff format --check src tests
 
 # Format code
-ruff format src tests
+uv run ruff format src tests
 ```
 
 ### Running Tests
 
 ```bash
 # Run all tests
-pytest
+uv run pytest
 
 # Run with verbose output
-pytest -v
+uv run pytest -v
 
 # Run specific test file
-pytest tests/test_http_methods.py
+uv run pytest tests/test_http_methods.py
 ```
+
+## Docker Deployment
+
+### Build Docker Image
+
+```bash
+# Build the image
+docker build -t httpbin:0.1.0 .
+
+# Build with custom build arguments
+docker build \
+  --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+  --build-arg VCS_REF=$(git rev-parse --short HEAD) \
+  -t httpbin:0.1.0 .
+```
+
+### Run Docker Container
+
+```bash
+# Run with default settings (port 8080, 4 workers)
+docker run --rm -it -p 8080:8080 httpbin:0.1.0
+
+# Run with custom configuration
+docker run --rm -it \
+  -p 8000:8000 \
+  -e UVICORN_PORT=8000 \
+  -e UVICORN_WORKERS=2 \
+  httpbin:0.1.0
+
+# Run in detached mode
+docker run -d -p 8080:8080 --name httpbin httpbin:0.1.0
+```
+
+### Docker Configuration
+
+The Docker image supports the following environment variables:
+
+- `UVICORN_APP`: Application module (default: `httpbin.main:app`)
+- `UVICORN_HOST`: Host to bind (default: `0.0.0.0`)
+- `UVICORN_PORT`: Port to bind (default: `8080`)
+- `UVICORN_WORKERS`: Number of worker processes (default: `4`)
+
+The image uses:
+
+- **Base**: RockyLinux 9 UBI
+- **Python**: 3.12
+- **User**: Non-root user (uid/gid: 1680)
+- **Security**: Multi-stage build with minimal runtime dependencies
 
 ## License
 
