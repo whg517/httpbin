@@ -1,5 +1,3 @@
-
-
 class TestHTTPMethods:
     """Test HTTP method endpoints"""
 

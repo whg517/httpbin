@@ -123,6 +123,55 @@ Edit `src/httpbin/config.py` to customize:
 - Maximum redirect count
 - Other application settings
 
+## Development
+
+### Setup Development Environment
+
+```bash
+# Install development dependencies
+pip install -e .[dev]
+
+# Or with uv
+uv sync --dev
+```
+
+### Code Quality
+
+This project uses [ruff](https://docs.astral.sh/ruff/) for linting and code formatting.
+
+#### Run Linting
+
+```bash
+# Check code for issues
+ruff check src tests
+
+# Auto-fix issues
+ruff check --fix src tests
+```
+
+#### Format Code
+
+```bash
+# Check code formatting
+ruff format --check src tests
+
+# Format code
+ruff format src tests
+```
+
+### Running Tests
+
+```bash
+# Run all tests
+pytest
+
+# Run with verbose output
+pytest -v
+
+# Run specific test file
+pytest tests/test_http_methods.py
+```
+
 ## License
 
 MIT

@@ -66,7 +66,8 @@ select = [
 
 # Ignore specific rules if needed
 ignore = [
-    "E501",  # Line too long (handled by formatter)
+    "E501",    # Line too long (handled by formatter)
+    "SIM105",  # Use contextlib.suppress - current try-except-pass is more readable
 ]
 
 [tool.ruff.lint.per-file-ignores]
