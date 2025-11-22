@@ -2,8 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
 
-from .config import settings
-from .routers import (
+from httpbin.config import settings
+from httpbin.routers import (
     dynamic_router,
     http_methods_router,
     request_inspection_router,

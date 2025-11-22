@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 
-from ..schemas import RequestInfo
-from ..utils import get_request_data
+from httpbin.schemas import RequestInfo
+from httpbin.utils import get_request_data
 
 router = APIRouter(tags=["HTTP Methods"])
 
