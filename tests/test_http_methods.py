@@ -1,6 +1,3 @@
-import pytest
-
-
 class TestHTTPMethods:
     """Test HTTP method endpoints"""
 

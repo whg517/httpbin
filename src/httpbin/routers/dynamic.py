@@ -1,7 +1,12 @@
 import asyncio
+import secrets
+import uuid
+
 from fastapi import APIRouter, HTTPException
-from ..utils import decode_base64, encode_base64
+from fastapi.responses import Response
+
 from ..config import settings
+from ..utils import decode_base64, encode_base64
 
 router = APIRouter(tags=["Dynamic Behavior"])
 
@@ -22,7 +27,7 @@ async def delay_response(seconds: int):
     return {
         "delay": actual_delay,
         "requested": seconds,
-        "message": f"Delayed response by {actual_delay} seconds"
+        "message": f"Delayed response by {actual_delay} seconds",
     }
 
 
@@ -47,7 +52,6 @@ async def encode_to_base64(data: dict):
 @router.get("/uuid")
 async def generate_uuid():
     """Generates a random UUID"""
-    import uuid
     return {"uuid": str(uuid.uuid4())}
 
 
@@ -55,13 +59,7 @@ async def generate_uuid():
 async def random_bytes(n: int):
     """Generates n random bytes"""
     if n < 1 or n > 102400:  # Max 100KB
-        raise HTTPException(
-            status_code=400,
-            detail="n must be between 1 and 102400"
-        )
+        raise HTTPException(status_code=400, detail="n must be between 1 and 102400")
 
-    import secrets
     random_data = secrets.token_bytes(n)
-
-    from fastapi.responses import Response
     return Response(content=random_data, media_type="application/octet-stream")

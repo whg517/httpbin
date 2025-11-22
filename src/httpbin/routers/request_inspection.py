@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+
 from ..schemas import HeadersResponse, IPResponse
 
 router = APIRouter(tags=["Request Inspection"])

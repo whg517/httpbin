@@ -4,11 +4,11 @@ from fastapi.responses import RedirectResponse
 
 from .config import settings
 from .routers import (
+    dynamic_router,
     http_methods_router,
-    status_codes_router,
     request_inspection_router,
     response_formats_router,
-    dynamic_router,
+    status_codes_router,
 )
 
 
@@ -55,6 +55,7 @@ app = create_app()
 def main():
     """Run the application with uvicorn"""
     import uvicorn
+
     uvicorn.run(
         "httpbin.main:app",
         host="0.0.0.0",
