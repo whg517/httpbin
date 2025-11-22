@@ -1,6 +1,9 @@
 import asyncio
+import secrets
+import uuid
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import Response
 
 from ..config import settings
 from ..utils import decode_base64, encode_base64
@@ -49,8 +52,6 @@ async def encode_to_base64(data: dict):
 @router.get("/uuid")
 async def generate_uuid():
     """Generates a random UUID"""
-    import uuid
-
     return {"uuid": str(uuid.uuid4())}
 
 
@@ -60,10 +61,5 @@ async def random_bytes(n: int):
     if n < 1 or n > 102400:  # Max 100KB
         raise HTTPException(status_code=400, detail="n must be between 1 and 102400")
 
-    import secrets
-
     random_data = secrets.token_bytes(n)
-
-    from fastapi.responses import Response
-
     return Response(content=random_data, media_type="application/octet-stream")
