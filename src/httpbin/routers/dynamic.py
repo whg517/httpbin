@@ -5,8 +5,8 @@ import uuid
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response
 
-from ..config import settings
-from ..utils import decode_base64, encode_base64
+from httpbin.config import settings
+from httpbin.utils import decode_base64, encode_base64
 
 router = APIRouter(tags=["Dynamic Behavior"])
 
