@@ -3,10 +3,7 @@ class TestRequestInspection:
 
     def test_headers(self, client):
         """Test headers endpoint"""
-        custom_headers = {
-            "X-Custom-Header": "test-value",
-            "User-Agent": "pytest-client"
-        }
+        custom_headers = {"X-Custom-Header": "test-value", "User-Agent": "pytest-client"}
         response = client.get("/headers", headers=custom_headers)
         assert response.status_code == 200
         data = response.json()

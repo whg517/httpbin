@@ -1,4 +1,3 @@
-from typing import List
 
 
 class Settings:
@@ -10,10 +9,10 @@ class Settings:
     APP_DESCRIPTION: str = "A simple HTTP Request & Response Service"
 
     # CORS settings
-    CORS_ORIGINS: List[str] = ["*"]
+    CORS_ORIGINS: list[str] = ["*"]
     CORS_ALLOW_CREDENTIALS: bool = True
-    CORS_ALLOW_METHODS: List[str] = ["*"]
-    CORS_ALLOW_HEADERS: List[str] = ["*"]
+    CORS_ALLOW_METHODS: list[str] = ["*"]
+    CORS_ALLOW_HEADERS: list[str] = ["*"]
 
     # Request limits
     MAX_DELAY_SECONDS: int = 10

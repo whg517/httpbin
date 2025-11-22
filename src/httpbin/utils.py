@@ -1,10 +1,10 @@
 import base64
-from typing import Any, Dict
+from typing import Any
+
 from fastapi import Request, UploadFile
-from fastapi.datastructures import FormData
 
 
-async def get_request_data(request: Request) -> Dict[str, Any]:
+async def get_request_data(request: Request) -> dict[str, Any]:
     """Extract comprehensive request data"""
 
     # Get query parameters
@@ -36,7 +36,9 @@ async def get_request_data(request: Request) -> Dict[str, Any]:
             json_data = await request.json()
         except Exception:
             pass
-    elif "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type:
+    elif (
+        "application/x-www-form-urlencoded" in content_type or "multipart/form-data" in content_type
+    ):
         try:
             form = await request.form()
             for key, value in form.items():
