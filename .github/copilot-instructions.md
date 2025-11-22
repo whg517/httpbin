@@ -6,11 +6,11 @@ This is a FastAPI-based HTTP testing service (like httpbin.org) that echoes back
 
 ## Architecture
 
-- **Entry Point**: `src/httpbin/main.py` creates the app via `create_app()` factory, includes all routers, and configures CORS
+- **Entry Point**: `src/httpbin/main.py` creates the app via `create_app()` factory, includes all routers, and configures CORS. The module is runnable (`python -m httpbin.main`).
 - **Routers**: Modular endpoints in `src/httpbin/routers/` - each router is isolated by functionality (HTTP methods, status codes, dynamic behavior, etc.)
 - **Schemas**: Pydantic models in `src/httpbin/schemas/responses.py` for type-safe API responses
 - **Utils**: Shared logic in `src/httpbin/utils.py` - particularly `get_request_data()` which extracts comprehensive request information
-- **Config**: Single `Settings` class in `src/httpbin/config.py` with application-wide constants (no environment variables)
+- **Config**: Single `Settings` class in `src/httpbin/config.py` with application-wide constants (no environment variables, no pydantic-settings)
 
 ## Key Patterns
 
@@ -38,8 +38,8 @@ Limits are enforced via `settings` (e.g., `MAX_DELAY_SECONDS`, `MAX_REDIRECT_COU
 
 ### Setup & Run
 ```bash
-uv sync                           # Install dependencies
-uv run python -m httpbin.main     # Run server on port 8000
+uv sync                           # Install dependencies (uses pyproject.toml, not uv.lock)
+uv run python -m httpbin.main     # Run server on 0.0.0.0:8000 with auto-reload
 ```
 
 ### Testing
@@ -49,6 +49,25 @@ uv run pytest tests/test_*.py     # Run specific test file
 ```
 
 Tests use `TestClient` fixture from `conftest.py`. All test classes follow `TestFeatureName` naming pattern.
+
+### Code Quality
+```bash
+ruff check src tests              # Lint code (uses pyproject.toml config)
+ruff check --fix src tests        # Auto-fix issues
+ruff format src tests             # Format code (100 char line length, double quotes)
+```
+
+### Docker Build & Run
+```bash
+docker build -t httpbin:0.1.0 .   # Multi-stage RockyLinux UBI build
+docker run --rm -it -p 8080:8080 httpbin:0.1.0  # Runs uvicorn on 0.0.0.0:8080
+```
+
+The Dockerfile uses:
+- Multi-stage build (base → builder → final) with RockyLinux 9 UBI
+- Dedicated user (uid/gid 1680) for security
+- uv for wheel building and dependency export
+- Environment variables: `UVICORN_APP`, `UVICORN_HOST`, `UVICORN_PORT`, `UVICORN_WORKERS` (default 4)
 
 ### Adding New Endpoints
 
@@ -85,3 +104,13 @@ See `routers/response_formats.py` for examples of returning HTML, XML, plain tex
 - Test class structure: `class TestFeatureName` with methods like `test_specific_behavior`
 - Always verify response status code, response structure, and key fields
 - Test both happy paths and error conditions (e.g., invalid input)
+- Each test file mirrors a router file (e.g., `test_http_methods.py` tests `routers/http_methods.py`)
+
+## Package Management
+
+This project uses **uv** (not pip or poetry):
+- No `uv.lock` file - dependencies are specified in `pyproject.toml` only
+- Install with `uv sync` (installs both main and dev dependencies)
+- Dev dependencies include: pytest, pytest-asyncio, httpx, ruff
+- Python 3.12+ required (specified in `pyproject.toml`)
+- CLI entry point: `httpbin = "httpbin.main:main"` (can run `uv run httpbin`)
