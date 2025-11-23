@@ -63,9 +63,10 @@ jobs:
       
       - name: Run k6 integration tests
         uses: grafana/run-k6-action@v0.1.1
+        env:
+          BASE_URL: http://localhost:8080
         with:
           path: tests/test_docker.js
-          flags: --env BASE_URL=http://localhost:8080
       
       - name: Test environment variables
         run: |
@@ -97,9 +98,10 @@ jobs:
       
       - name: Run k6 tests on custom port
         uses: grafana/run-k6-action@v0.1.1
+        env:
+          BASE_URL: http://localhost:9000
         with:
           path: tests/test_docker.js
-          flags: --env BASE_URL=http://localhost:9000
       
       - name: Cleanup custom port container
         run: |
