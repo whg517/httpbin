@@ -4,9 +4,11 @@
 
 set -e
 
-CONTAINER_NAME="httpbin-test-$$"
+RANDOM_SUFFIX=$(shuf -i 1000-9999 -n 1 2>/dev/null || echo $RANDOM)
+CONTAINER_NAME="httpbin-test-$(date +%s)-${RANDOM_SUFFIX}"
 IMAGE_TAG="${IMAGE_TAG:-httpbin:test}"
 PORT="${PORT:-8080}"
+STARTUP_TIMEOUT="${STARTUP_TIMEOUT:-30}"
 CLEANUP_ON_EXIT=true
 
 # Colors for output
@@ -46,9 +48,9 @@ test_container_start() {
     
     docker run -d --name "$CONTAINER_NAME" -p "$PORT:8080" "$IMAGE_TAG"
     
-    # Wait for container to be ready (max 30 seconds)
-    log_info "Waiting for container to be ready..."
-    for i in {1..30}; do
+    # Wait for container to be ready (configurable via STARTUP_TIMEOUT)
+    log_info "Waiting for container to be ready (timeout: ${STARTUP_TIMEOUT}s)..."
+    for i in $(seq 1 "$STARTUP_TIMEOUT"); do
         if curl -s -f "http://localhost:$PORT/status/200" > /dev/null 2>&1; then
             log_info "✓ Container started successfully"
             return 0
@@ -56,7 +58,7 @@ test_container_start() {
         sleep 1
     done
     
-    log_error "✗ Container failed to start within 30 seconds"
+    log_error "✗ Container failed to start within ${STARTUP_TIMEOUT} seconds"
     docker logs "$CONTAINER_NAME"
     return 1
 }

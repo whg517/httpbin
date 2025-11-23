@@ -20,6 +20,9 @@ PORT=9000 ./tests/test_docker.sh
 
 # Run with custom image tag
 IMAGE_TAG=httpbin:latest ./tests/test_docker.sh
+
+# Run with custom startup timeout (useful for slower environments)
+STARTUP_TIMEOUT=60 ./tests/test_docker.sh
 ```
 
 ### Tests Included
