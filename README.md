@@ -218,16 +218,19 @@ The image uses:
 
 ### Docker Testing
 
-The project includes comprehensive Docker testing:
+The project uses [k6](https://k6.io/) for automated Docker container testing:
 
-- **Automated Tests**: Run `./tests/test_docker.sh` to test the container
+- **k6 Integration Tests**: Professional-grade API testing with clear assertions
 - **GitHub Actions**: Automatic Dockerfile linting and container testing on every PR
 - **Documentation**: See [tests/DOCKER_TESTING.md](tests/DOCKER_TESTING.md) for details
 
 ```bash
 # Build and test the Docker image
 docker build -t httpbin:test .
-./tests/test_docker.sh
+docker run -d --name httpbin-test -p 8080:8080 httpbin:test
+k6 run --env BASE_URL=http://localhost:8080 tests/test_docker.js
+docker stop httpbin-test && docker rm httpbin-test
+```
 ```
 
 ## License
