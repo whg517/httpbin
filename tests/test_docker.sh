@@ -4,7 +4,8 @@
 
 set -e
 
-RANDOM_SUFFIX=$(shuf -i 1000-9999 -n 1 2>/dev/null || echo $RANDOM)
+# Generate random suffix with multiple fallbacks for portability
+RANDOM_SUFFIX=$(shuf -i 1000-9999 -n 1 2>/dev/null || echo "${RANDOM:-$(date +%N | cut -c6-9)}")
 CONTAINER_NAME="httpbin-test-$(date +%s)-${RANDOM_SUFFIX}"
 IMAGE_TAG="${IMAGE_TAG:-httpbin:test}"
 PORT="${PORT:-8080}"

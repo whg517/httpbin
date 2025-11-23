@@ -49,6 +49,7 @@ jobs:
           IMAGE_TAG=httpbin:test tests/test_docker.sh
       
       - name: Test environment variables
+        shell: bash
         run: |
           # Test with custom port
           docker run -d --name httpbin-test-custom \
@@ -59,7 +60,7 @@ jobs:
           
           # Wait for container to be ready
           echo "Waiting for custom configuration container..."
-          for i in {1..30}; do
+          for i in $(seq 1 30); do
             if curl -s -f http://localhost:9000/status/200 > /dev/null 2>&1; then
               echo "✓ Custom port configuration works!"
               break
@@ -77,14 +78,21 @@ jobs:
       
       - name: Show container logs on failure
         if: failure()
+        shell: bash
         run: |
           echo "=== Container logs ==="
-          docker logs httpbin-test-custom 2>/dev/null || true
+          # Only show logs if container exists
+          if docker ps -a --format '{{.Names}}' | grep -q 'httpbin-test-custom'; then
+            docker logs httpbin-test-custom
+          else
+            echo "Container httpbin-test-custom does not exist"
+          fi
           echo "=== Container status ==="
           docker ps -a || true
       
       - name: Cleanup
         if: always()
+        shell: bash
         run: |
           docker stop httpbin-test-custom 2>/dev/null || true
           docker rm httpbin-test-custom 2>/dev/null || true
