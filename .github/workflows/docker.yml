@@ -113,7 +113,7 @@ jobs:
       - name: Test container runs as non-root user
         run: |
           # Check that container runs as uid 1680
-          user_id=$(docker run --rm httpbin:test id -u)
+          user_id=$(docker run --rm --entrypoint="" httpbin:test id -u)
           if [ "$user_id" != "1680" ]; then
             echo "Container is not running as expected user (uid 1680), got: $user_id"
             exit 1
