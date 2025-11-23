@@ -231,7 +231,6 @@ docker run -d --name httpbin-test -p 8080:8080 httpbin:test
 k6 run --env BASE_URL=http://localhost:8080 tests/test_docker.js
 docker stop httpbin-test && docker rm httpbin-test
 ```
-```
 
 ## License
 
