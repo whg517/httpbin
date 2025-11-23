@@ -216,6 +216,27 @@ The image uses:
 - **User**: Non-root user (uid/gid: 1680)
 - **Security**: Multi-stage build with minimal runtime dependencies
 
+### Docker Testing
+
+The project uses [k6](https://k6.io/) for automated Docker container testing:
+
+- **k6 Integration Tests**: Professional-grade API testing with clear assertions
+- **GitHub Actions**: Automatic Dockerfile linting and container testing on every PR
+
+```bash
+# Build and test the Docker image
+docker build -t httpbin:test .
+docker run -d --name httpbin-test -p 8080:8080 httpbin:test
+k6 run --env BASE_URL=http://localhost:8080 tests/test_docker.js
+docker stop httpbin-test && docker rm httpbin-test
+
+# Alternative: Run k6 using Docker container
+# docker build -t httpbin:test .
+# docker run -d --name httpbin-test -p 8080:8080 httpbin:test
+# docker run --rm -i --network host -v $(pwd)/tests:/tests grafana/k6 run --env BASE_URL=http://localhost:8080 /tests/test_docker.js
+# docker stop httpbin-test && docker rm httpbin-test
+```
+
 ## License
 
 MIT
