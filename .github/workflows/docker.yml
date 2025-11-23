@@ -1,0 +1,165 @@
+name: Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Lint Dockerfile with hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          # Ignore DL3041 (specify version for dnf packages) as we want latest security updates
+          ignore: DL3041
+
+  build-and-test:
+    name: Build and Test Container
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Build Docker image
+        run: |
+          docker build \
+            --build-arg BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ') \
+            --build-arg VCS_REF=$(git rev-parse --short HEAD) \
+            -t httpbin:test \
+            --load \
+            .
+      
+      - name: Test container starts successfully
+        run: |
+          # Start container in background
+          docker run -d --name httpbin-test -p 8080:8080 httpbin:test
+          
+          # Wait for container to be ready (max 30 seconds)
+          echo "Waiting for container to be ready..."
+          for i in {1..30}; do
+            if docker ps | grep -q httpbin-test; then
+              sleep 2
+              if curl -s -f http://localhost:8080/status/200 > /dev/null 2>&1; then
+                echo "Container is ready!"
+                break
+              fi
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Container failed to become ready"
+              docker logs httpbin-test
+              exit 1
+            fi
+            sleep 1
+          done
+      
+      - name: Test basic endpoints
+        run: |
+          # Test GET endpoint
+          response=$(curl -s http://localhost:8080/get?test=value)
+          echo "GET response: $response"
+          if ! echo "$response" | grep -q "test"; then
+            echo "GET endpoint test failed"
+            exit 1
+          fi
+          
+          # Test POST endpoint
+          response=$(curl -s -X POST http://localhost:8080/post \
+            -H "Content-Type: application/json" \
+            -d '{"key": "value"}')
+          echo "POST response: $response"
+          if ! echo "$response" | grep -q "key"; then
+            echo "POST endpoint test failed"
+            exit 1
+          fi
+          
+          # Test status code endpoint
+          status=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/status/201)
+          if [ "$status" != "201" ]; then
+            echo "Status code test failed: expected 201, got $status"
+            exit 1
+          fi
+          
+          # Test headers endpoint
+          response=$(curl -s http://localhost:8080/headers)
+          echo "Headers response: $response"
+          if ! echo "$response" | grep -q "headers"; then
+            echo "Headers endpoint test failed"
+            exit 1
+          fi
+          
+          # Test IP endpoint
+          response=$(curl -s http://localhost:8080/ip)
+          echo "IP response: $response"
+          if ! echo "$response" | grep -q "origin"; then
+            echo "IP endpoint test failed"
+            exit 1
+          fi
+          
+          echo "All endpoint tests passed!"
+      
+      - name: Test environment variables
+        run: |
+          # Stop the previous container
+          docker stop httpbin-test
+          docker rm httpbin-test
+          
+          # Test with custom port
+          docker run -d --name httpbin-test-custom \
+            -p 9000:9000 \
+            -e UVICORN_PORT=9000 \
+            -e UVICORN_WORKERS=2 \
+            httpbin:test
+          
+          # Wait for container to be ready
+          sleep 5
+          
+          # Test custom port
+          if curl -s -f http://localhost:9000/status/200 > /dev/null 2>&1; then
+            echo "Custom port configuration works!"
+          else
+            echo "Custom port test failed"
+            docker logs httpbin-test-custom
+            exit 1
+          fi
+          
+          docker stop httpbin-test-custom
+          docker rm httpbin-test-custom
+      
+      - name: Test container runs as non-root user
+        run: |
+          # Check that container runs as uid 1680
+          user_id=$(docker run --rm httpbin:test id -u)
+          if [ "$user_id" != "1680" ]; then
+            echo "Container is not running as expected user (uid 1680), got: $user_id"
+            exit 1
+          fi
+          echo "Container correctly runs as non-root user (uid 1680)"
+      
+      - name: Show container logs on failure
+        if: failure()
+        run: |
+          echo "=== Container logs ==="
+          docker logs httpbin-test || true
+          echo "=== Container status ==="
+          docker ps -a || true
+      
+      - name: Cleanup
+        if: always()
+        run: |
+          docker stop httpbin-test 2>/dev/null || true
+          docker rm httpbin-test 2>/dev/null || true
+          docker stop httpbin-test-custom 2>/dev/null || true
+          docker rm httpbin-test-custom 2>/dev/null || true

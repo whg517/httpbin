@@ -216,6 +216,20 @@ The image uses:
 - **User**: Non-root user (uid/gid: 1680)
 - **Security**: Multi-stage build with minimal runtime dependencies
 
+### Docker Testing
+
+The project includes comprehensive Docker testing:
+
+- **Automated Tests**: Run `./tests/test_docker.sh` to test the container
+- **GitHub Actions**: Automatic Dockerfile linting and container testing on every PR
+- **Documentation**: See [tests/DOCKER_TESTING.md](tests/DOCKER_TESTING.md) for details
+
+```bash
+# Build and test the Docker image
+docker build -t httpbin:test .
+./tests/test_docker.sh
+```
+
 ## License
 
 MIT
