@@ -61,15 +61,11 @@ jobs:
             sleep 1
           done
       
-      - name: Setup k6
-        run: |
-          curl https://github.com/grafana/k6/releases/download/v0.54.0/k6-v0.54.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
-          sudo mv k6 /usr/local/bin/
-          k6 version
-      
       - name: Run k6 integration tests
-        run: |
-          k6 run --env BASE_URL=http://localhost:8080 tests/test_docker.js
+        uses: grafana/run-k6-action@v0.1.1
+        with:
+          path: tests/test_docker.js
+          flags: --env BASE_URL=http://localhost:8080
       
       - name: Test environment variables
         run: |
@@ -98,10 +94,15 @@ jobs:
             fi
             sleep 1
           done
-          
-          # Run k6 tests against custom port
-          k6 run --env BASE_URL=http://localhost:9000 tests/test_docker.js
-          
+      
+      - name: Run k6 tests on custom port
+        uses: grafana/run-k6-action@v0.1.1
+        with:
+          path: tests/test_docker.js
+          flags: --env BASE_URL=http://localhost:9000
+      
+      - name: Cleanup custom port container
+        run: |
           docker stop httpbin-test-custom
           docker rm httpbin-test-custom
       

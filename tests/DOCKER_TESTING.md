@@ -83,10 +83,12 @@ The `.github/workflows/docker.yml` workflow automatically:
 1. **Lints the Dockerfile** using hadolint
 2. **Builds the Docker image** with proper build arguments
 3. **Starts the container** and waits for readiness
-4. **Runs k6 integration tests** to verify all endpoints
+4. **Runs k6 integration tests** using the official `grafana/run-k6-action`
 5. **Tests environment variables** with custom port configuration
 6. **Runs k6 tests again** on the custom-configured container
 7. **Verifies security** by checking non-root user execution
+
+The workflow uses the official [grafana/run-k6-action](https://github.com/grafana/run-k6-action) which simplifies k6 setup and execution.
 
 The workflow runs on every push and pull request to the main branch.
 
