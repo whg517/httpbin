@@ -62,6 +62,9 @@ jobs:
             sleep 1
           done
       
+      - name: Setup k6
+        uses: grafana/setup-k6-action@v1
+      
       - name: Run k6 integration tests
         uses: grafana/run-k6-action@v1.3.1
         with:
