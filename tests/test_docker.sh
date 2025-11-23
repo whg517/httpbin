@@ -4,8 +4,9 @@
 
 set -e
 
-# Generate random suffix with multiple fallbacks for portability
-RANDOM_SUFFIX=$(shuf -i 1000-9999 -n 1 2>/dev/null || echo "${RANDOM:-$(date +%N | cut -c6-9)}")
+# Generate random suffix with multiple fallbacks for maximum portability
+# Try: shuf (GNU) → $RANDOM (bash) → date seconds suffix
+RANDOM_SUFFIX=$(shuf -i 1000-9999 -n 1 2>/dev/null || echo "${RANDOM:-$(date +%s | tail -c 4)}")
 CONTAINER_NAME="httpbin-test-$(date +%s)-${RANDOM_SUFFIX}"
 IMAGE_TAG="${IMAGE_TAG:-httpbin:test}"
 PORT="${PORT:-8080}"
@@ -60,7 +61,11 @@ test_container_start() {
     done
     
     log_error "✗ Container failed to start within ${STARTUP_TIMEOUT} seconds"
-    docker logs "$CONTAINER_NAME"
+    if docker ps -a --format '{{.Names}}' | grep -q "$CONTAINER_NAME"; then
+        docker logs "$CONTAINER_NAME"
+    else
+        log_error "Container $CONTAINER_NAME does not exist"
+    fi
     return 1
 }
 
