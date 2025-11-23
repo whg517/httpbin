@@ -21,7 +21,8 @@ jobs:
         with:
           dockerfile: Dockerfile
           # Ignore DL3041 (specify version for dnf packages) as we want latest security updates
-          ignore: DL3041
+          # Ignore SC1091 (shellcheck: not following sourced files) for venv activation
+          ignore: DL3041,SC1091
 
   build-and-test:
     name: Build and Test Container
